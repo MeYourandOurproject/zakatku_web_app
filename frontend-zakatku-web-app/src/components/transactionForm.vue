@@ -40,11 +40,11 @@
           </div>
 
           <!-- DATA MUZAKI -->
-          <h6 class="section-title">Data Muzaki</h6>
+          <!-- <h6 class="section-title">Data Muzaki</h6> -->
 
           <div class="row">
             <div class="col-md-6 mb-3">
-              <label class="form-label custom-label">Name</label>
+              <label class="form-label custom-label">Nama Muzaki</label>
               <input
                 type="text"
                 class="form-control custom-input"
@@ -56,7 +56,7 @@
             </div>
 
             <div class="col-md-6 mb-3">
-              <label class="form-label custom-label">Phone</label>
+              <label class="form-label custom-label">Nomor</label>
               <input
                 type="text"
                 class="form-control custom-input"
@@ -67,7 +67,7 @@
           </div>
 
           <div class="mb-3">
-            <label class="form-label custom-label">Address</label>
+            <label class="form-label custom-label">Alamat</label>
             <textarea
               class="form-control custom-input"
               v-model="form.address"
@@ -145,18 +145,18 @@
             </div>
           </div>
           <div class="mb-3">
-            <label class="form-label custom-label">Is Mustahiq?</label>
+            <label class="form-label custom-label">Apakah Mustahiq?</label>
             <select
               class="form-select custom-input"
               v-model="form.is_mustahiq"
               :disabled="isDisabled"
             >
-              <option :value="false">No</option>
-              <option :value="true">Yes</option>
+              <option :value="false">Bukan</option>
+              <option :value="true">Ya</option>
             </select>
           </div>
           <div class="mb-4">
-            <label class="form-label custom-label">Notes</label>
+            <label class="form-label custom-label">Catatan</label>
             <textarea
               class="form-control custom-input"
               v-model="form.notes"
@@ -173,7 +173,7 @@
               :disabled="!isDisabled || loadingGenerate"
             >
               <span v-if="loadingGenerate" class="spinner-border spinner-border-sm me-2"></span>
-              Generate
+              ISI
             </button>
 
             <button
@@ -182,7 +182,7 @@
               :disabled="isDisabled || loadingSubmit"
             >
               <span v-if="loadingSubmit" class="spinner-border spinner-border-sm me-2"></span>
-              Upload
+              SIMPAN
             </button>
           </div>
         </form>
