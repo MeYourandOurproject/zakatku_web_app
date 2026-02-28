@@ -51,7 +51,6 @@ class MuzakiController {
         },
         include: [
           { model: Receipt, as: "receipts" },
-          { module: Receiptdetail },
         ],
         limit: parseInt(limit),
         offset: parseInt(offset),
