@@ -40,7 +40,7 @@
           </div>
 
           <!-- DATA MUZAKI -->
-          <!-- <h6 class="section-title">Data Muzaki</h6> -->
+          <h6 class="section-title">Data Muzaki</h6>
 
           <div class="row">
             <div class="col-md-6 mb-3">
