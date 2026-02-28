@@ -17,7 +17,7 @@ app.use(express.urlencoded({ extended: false }));
 
 // Konfigurasi CORS
 // Allowed origins
-const allowedOrigins = ["https://gaharuoutbound.com", "http://localhost:5173"];
+const allowedOrigins = ["https://zakatku-web-app.vercel.app", "http://localhost:5173"];
 
 // CORS configuration
 // Logging origin (debug)

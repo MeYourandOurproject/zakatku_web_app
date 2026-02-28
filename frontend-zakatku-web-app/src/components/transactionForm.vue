@@ -193,6 +193,7 @@
 
 <script>
 import { Toast } from 'bootstrap'
+const API_BASE_URL = import.meta.env.VITE_APP_API_BASE_URL
 
 export default {
   data() {
@@ -234,7 +235,7 @@ export default {
     async handleGenerate() {
       this.loadingGenerate = true
       try {
-        const response = await fetch('http://localhost:3001/api/transactions/generate-number', {
+        const response = await fetch(`${API_BASE_URL}/api/transactions/generate-number`, {
           method: 'POST',
         })
         const data = await response.json()
@@ -258,7 +259,7 @@ export default {
     async handleSubmit() {
       this.loadingSubmit = true
       try {
-        const response = await fetch('http://localhost:3001/api/transactions', {
+        const response = await fetch(`${API_BASE_URL}/api/transactions`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(this.form),

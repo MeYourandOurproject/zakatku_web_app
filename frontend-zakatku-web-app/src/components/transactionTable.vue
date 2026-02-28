@@ -109,6 +109,7 @@
 </template>
 
 <script>
+const API_BASE_URL = import.meta.env.VITE_APP_API_BASE_URL
 export default {
   name: 'TransactionTable',
 
@@ -127,7 +128,7 @@ export default {
     async fetchData() {
       try {
         const res = await fetch(
-          'http://localhost:3001/api/receipts?page=1&limit=10'
+          `${API_BASE_URL}/api/receipts?page=1&limit=10`
         )
         const result = await res.json()
         this.transactions = result.data
@@ -141,7 +142,7 @@ export default {
         this.exporting = true
 
         const response = await fetch(
-          'http://localhost:3001/api/export/excel'
+          `${API_BASE_URL}/api/export/excel`
         )
 
         if (!response.ok) throw new Error('Export failed')
