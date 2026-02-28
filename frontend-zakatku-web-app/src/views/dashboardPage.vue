@@ -28,7 +28,7 @@
 
 <script>
 import TransactionForm from '@/components/transactionForm.vue'
-import DashboardView from '@/components/dashboardview.vue'
+import DashboardView from '@/components/dashboardView.vue'
 import TransactionTable from '@/components/transactionTable.vue'
 // import transactionForm from '@/components/transactionForm.vue'
 
