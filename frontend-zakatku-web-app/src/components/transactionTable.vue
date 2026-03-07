@@ -3,7 +3,6 @@
     <div class="row">
       <div class="col-12">
         <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
-
           <!-- HEADER -->
           <div class="card-header gradient-header text-white py-3 text-center">
             <h4 class="mb-0 fw-bold">📊 Transaction List</h4>
@@ -51,37 +50,58 @@
               <tbody>
                 <tr v-for="(trx, index) in transactions" :key="trx.id">
                   <td>{{ index + 1 }}</td>
-                  <td class="receipt">{{ trx.receipt_number }}</td>
-                  <td class="fw-semibold">{{ trx.muzaki?.name }}</td>
-                  <td>{{ trx.number_of_people }}</td>
 
-                  <td>{{ getDetail(trx, 'RICE') || '' }}</td>
-                  <td>{{ formatCurrency(getDetail(trx, 'CASH')) }}</td>
-
-                  <td>{{ formatCurrency(getDetail(trx, 'MAL')) }}</td>
-                  <td>{{ formatCurrency(getDetail(trx, 'INFAQ/SHADAQAH')) }}</td>
-                  <td>{{ getDetail(trx, 'FIDYAH') || '' }}</td>
-
-                  <td>
-                    <span v-if="trx.muzaki?.is_mustahiq" class="badge bg-success">✔</span>
+                  <td class="receipt">
+                    {{ trx.receipt_number }}
                   </td>
+
+                  <td class="fw-semibold">
+                    {{ trx.muzaki?.name }}
+                  </td>
+
                   <td>
-                    <span v-if="!trx.muzaki?.is_mustahiq" class="badge bg-secondary">✔</span>
+                    {{ trx.number_of_people }}
+                  </td>
+
+                  <td>
+                    {{ getDetail(trx, 'RICE') || '' }}
+                  </td>
+
+                  <td class="">
+                    {{ formatCurrency(getDetail(trx, 'CASH')) }}
+                  </td>
+
+                  <td class="">
+                    {{ formatCurrency(getDetail(trx, 'MAL')) }}
+                  </td>
+
+                  <td class="">
+                    {{ formatCurrency(getDetail(trx, 'INFAQ/SHADAQAH')) }}
+                  </td>
+
+                  <td class="">
+                    {{ formatCurrency(getDetail(trx, 'FIDYAH')) || '' }}
+                  </td>
+
+                  <td>
+                    <span v-if="trx.muzaki?.is_mustahiq" class="badge bg-success"> ✔ </span>
+                  </td>
+
+                  <td>
+                    <span v-if="!trx.muzaki?.is_mustahiq" class="badge bg-secondary"> ✔ </span>
                   </td>
 
                   <td class="total-rice">
                     {{ calculateTotalRice(trx) || '' }}
                   </td>
 
-                  <td class="total-money">
+                  <td class="total-money money">
                     {{ formatCurrency(calculateTotalMoney(trx)) }}
                   </td>
                 </tr>
 
                 <tr v-if="transactions.length === 0">
-                  <td colspan="14" class="py-4 text-muted">
-                    No transactions found
-                  </td>
+                  <td colspan="14" class="py-4 text-muted">No transactions found</td>
                 </tr>
               </tbody>
             </table>
@@ -94,14 +114,14 @@
               @click="exportExcel"
               :disabled="exporting"
             >
-              <span v-if="!exporting">⬇ Export to Excel</span>
+              <span v-if="!exporting"> ⬇ Export to Excel </span>
+
               <span v-else>
                 <span class="spinner-border spinner-border-sm me-2"></span>
                 Exporting...
               </span>
             </button>
           </div>
-
         </div>
       </div>
     </div>
@@ -110,6 +130,7 @@
 
 <script>
 const API_BASE_URL = import.meta.env.VITE_APP_API_BASE_URL
+
 export default {
   name: 'TransactionTable',
 
@@ -127,10 +148,16 @@ export default {
   methods: {
     async fetchData() {
       try {
-        const res = await fetch(
-          `${API_BASE_URL}/api/receipts?page=1&limit=10`
-        )
+        const token = localStorage.getItem('token')
+
+        const res = await fetch(`${API_BASE_URL}/api/receipts?page=1&limit=10`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+
         const result = await res.json()
+
         this.transactions = result.data
       } catch (error) {
         console.error('Failed fetching transactions:', error)
@@ -141,35 +168,36 @@ export default {
       try {
         this.exporting = true
 
-        const response = await fetch(
-          `${API_BASE_URL}/api/export/excel`
-        )
+        const response = await fetch(`${API_BASE_URL}/api/export/excel`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        })
 
         if (!response.ok) throw new Error('Export failed')
 
-        // 🔥 Ambil nama file dari backend
         const contentDisposition = response.headers.get('Content-Disposition')
+
         let fileName = 'Laporan_Zakat.xlsx'
 
         if (contentDisposition && contentDisposition.includes('filename=')) {
-          fileName = contentDisposition
-            .split('filename=')[1]
-            .replace(/"/g, '')
+          fileName = contentDisposition.split('filename=')[1].replace(/"/g, '')
         }
 
         const blob = await response.blob()
         const url = window.URL.createObjectURL(blob)
 
         const link = document.createElement('a')
+
         link.href = url
         link.download = fileName
 
         document.body.appendChild(link)
+
         link.click()
         link.remove()
 
         window.URL.revokeObjectURL(url)
-
       } catch (error) {
         console.error('Export failed:', error)
         alert('Gagal export data')
@@ -180,9 +208,9 @@ export default {
 
     getDetail(trx, subCategory) {
       if (!trx.details) return 0
-      const item = trx.details.find(
-        (d) => d.sub_category === subCategory
-      )
+
+      const item = trx.details.find((d) => d.sub_category === subCategory)
+
       return item ? parseFloat(item.quantity) : 0
     },
 
@@ -195,12 +223,18 @@ export default {
       const mal = this.getDetail(trx, 'MAL')
       const infaq = this.getDetail(trx, 'INFAQ/SHADAQAH')
       const fidyah = this.getDetail(trx, 'FIDYAH')
+
       return cash + mal + infaq + fidyah
     },
 
     formatCurrency(value) {
       if (!value) return ''
-      return new Intl.NumberFormat('id-ID').format(value)
+
+      return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0,
+      }).format(value)
     },
   },
 }
@@ -241,6 +275,10 @@ export default {
 .total-money {
   font-weight: 700;
   color: #198754;
+}
+
+.money {
+  text-align: right;
 }
 
 .custom-table td {

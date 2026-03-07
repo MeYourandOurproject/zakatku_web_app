@@ -48,6 +48,7 @@
 <script>
 import Chart from 'chart.js/auto'
 const API_BASE_URL = import.meta.env.VITE_APP_API_BASE_URL
+const token = localStorage.getItem('token')
 
 export default {
   data() {
@@ -62,7 +63,12 @@ export default {
 
   methods: {
     async fetchData() {
-      const res = await fetch(`${API_BASE_URL}/api/transactions`)
+      const res = await fetch(`${API_BASE_URL}/api/transactions`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
       const data = await res.json()
       this.transactions = data || []
       this.prepareCharts()
