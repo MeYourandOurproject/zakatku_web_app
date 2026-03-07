@@ -105,10 +105,10 @@
             <div class="col-md-4 mb-3">
               <label class="form-label custom-label">Zakat Uang <br />(Rp)</label>
               <input
-                type="number"
+                type="text"
                 class="form-control custom-input"
-                v-model.number="form.zakat_cash"
                 :disabled="isDisabled"
+                @input="handleCurrencyInput('zakat_cash', $event)"
               />
             </div>
           </div>
@@ -117,30 +117,30 @@
             <div class="col-md-4 mb-3">
               <label class="form-label custom-label">Zakat Mal</label>
               <input
-                type="number"
+                type="text"
                 class="form-control custom-input"
-                v-model.number="form.outher_mal"
                 :disabled="isDisabled"
+                @input="handleCurrencyInput('outher_mal', $event)"
               />
             </div>
 
             <div class="col-md-4 mb-3">
               <label class="form-label custom-label">Infaq/Shadaqah</label>
               <input
-                type="number"
+                type="text"
                 class="form-control custom-input"
-                v-model.number="form.outher_infaq"
                 :disabled="isDisabled"
+                @input="handleCurrencyInput('outher_infaq', $event)"
               />
             </div>
 
             <div class="col-md-4 mb-3">
               <label class="form-label custom-label">Fidyah</label>
               <input
-                type="number"
+                type="text"
                 class="form-control custom-input"
-                v-model.number="form.outher_fidyah"
                 :disabled="isDisabled"
+                @input="handleCurrencyInput('outher_fidyah', $event)"
               />
             </div>
           </div>
@@ -194,6 +194,7 @@
 <script>
 import { Toast } from 'bootstrap'
 const API_BASE_URL = import.meta.env.VITE_APP_API_BASE_URL
+const token = localStorage.getItem('token')
 
 export default {
   data() {
@@ -237,6 +238,9 @@ export default {
       try {
         const response = await fetch(`${API_BASE_URL}/api/transactions/generate-number`, {
           method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         })
         const data = await response.json()
 
@@ -261,7 +265,7 @@ export default {
       try {
         const response = await fetch(`${API_BASE_URL}/api/transactions`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
           body: JSON.stringify(this.form),
         })
 
@@ -277,6 +281,30 @@ export default {
       } finally {
         this.loadingSubmit = false
       }
+    },
+
+    formatCurrency(value) {
+      if (!value) return ''
+
+      const number = value.toString().replace(/\D/g, '')
+
+      return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0,
+      }).format(number)
+    },
+
+    handleCurrencyInput(field, event) {
+      const rawValue = event.target.value.replace(/\D/g, '')
+
+      this.form[field] = rawValue
+
+      event.target.value = new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0,
+      }).format(rawValue)
     },
   },
 }

@@ -24,6 +24,7 @@
         <div class="ayat-box mb-4">
           <p class="arabic-text mb-2">
             وَأَقِيمُوا الصَّلَاةَ وَآتُوا الزَّكَاةَ وَارْكَعُوا مَعَ الرَّاكِعِينَ
+             
           </p>
           <p class="text-muted fst-italic small">
             “Dan dirikanlah shalat, tunaikanlah zakat, dan rukuklah beserta
@@ -43,7 +44,7 @@
         </div>
 
         <!-- BUTTON -->
-        <router-link to="/dashboard">
+        <router-link to="/login">
           <button class="btn btn-primary px-5 py-2 custom-btn">
             🚀 Masuk Dashboard
           </button>
