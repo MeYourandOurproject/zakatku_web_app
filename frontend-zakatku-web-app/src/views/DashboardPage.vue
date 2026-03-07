@@ -4,28 +4,30 @@
       <!-- HEADER IDENTITAS -->
       <div class="row m-0 mb-3">
         <div class="col-12">
-          <div class="card shadow-sm p-3 gradient-header text-white rounded-4">
+          <div class="card shadow-sm p-3 px-4 gradient-header text-white rounded-4">
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
               <!-- KIRI : LOGO + INSTITUSI -->
-              <div class="d-flex align-items-start gap-3 text-start">
-                <img v-if="institution.logo" :src="institution.logo" class="institution-logo" />
+              <div class="d-flex align-items-md-center gap-3 text-start">
+                <div class="icon fs-1"><i class="bi bi-person-circle"></i></div>
 
                 <div>
+                  <strong>Admin :</strong> {{ admin.name }}
                   <h5 class="mb-0 fw-bold">{{ institution.name }}</h5>
                   <small>{{ institution.address }}</small>
                   <br />
-                  <strong>Admin :</strong> {{ admin.name }}
                 </div>
               </div>
 
               <!-- KANAN : ADMIN + DATE -->
-              <div class="text-start text-md-end">
-                <div><strong>Tanggal :</strong> {{ today }}</div>
+              <div class="text-end">
+                <!-- <div><strong>Tanggal :</strong> {{ today }}</div>
 
-                <div><strong>Jam :</strong> {{ time }}</div>
+                <div><strong>Jam :</strong> {{ time }}</div> -->
 
                 <!-- LOGOUT BUTTON -->
-                <button class="btn btn-light btn-sm mt-2" @click="handleLogout">Logout</button>
+                <button class="btn btn-outline-light" @click="handleLogout">
+                  LOGOUT<i class="bi bi-box-arrow-right ms-2"></i>
+                </button>
               </div>
             </div>
           </div>
