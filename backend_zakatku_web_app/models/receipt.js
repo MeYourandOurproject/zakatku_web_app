@@ -8,10 +8,16 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
+      Receipt.belongsTo(models.Zakatinstitution, {
+        foreignKey: "institution_id",
+        as: "institution",
+      });
+
       Receipt.belongsTo(models.Muzaki, {
         foreignKey: "muzaki_id",
         as: "muzaki",
       });
+
       Receipt.hasMany(models.Receiptdetail, {
         foreignKey: "receipt_id",
         as: "details",
@@ -24,10 +30,13 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
+      institution_id: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
       receipt_number: {
         type: DataTypes.STRING,
         allowNull: false,
-        unique: true,
       },
       date: {
         type: DataTypes.DATEONLY,
@@ -48,6 +57,13 @@ module.exports = (sequelize, DataTypes) => {
       modelName: "Receipt",
       tableName: "Receipts",
       freezeTableName: true,
+
+      indexes: [
+        {
+          unique: true,
+          fields: ["institution_id", "receipt_number"],
+        },
+      ],
     },
   );
   return Receipt;

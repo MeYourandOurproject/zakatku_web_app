@@ -39,6 +39,7 @@ class ReceiptController {
   // =========================
   // GET ALL RECEIPTS
   // =========================
+
   static async GetAll(req, res) {
     try {
       const { page = 1, limit = 10, search = "" } = req.query;
@@ -47,9 +48,16 @@ class ReceiptController {
 
       const { count, rows } = await Receipt.findAndCountAll({
         where: {
-          receipt_number: {
-            [Op.like]: `%${search}%`,
-          },
+          [Op.and]: [
+            {
+              receipt_number: {
+                [Op.like]: `%${search}%`,
+              },
+            },
+            {
+              institution_id: req.user.institution_id,
+            },
+          ],
         },
         include: [
           {
