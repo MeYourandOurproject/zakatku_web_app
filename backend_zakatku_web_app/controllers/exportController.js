@@ -8,6 +8,9 @@ const Receiptdetail = db.Receiptdetail;
 exports.exportZakatExcel = async (req, res) => {
   try {
     const receipts = await Receipt.findAll({
+      where: {
+        institution_id: req.user.institution_id,
+      },
       include: [
         { model: Muzaki, as: "muzaki" },
         { model: Receiptdetail, as: "details" },

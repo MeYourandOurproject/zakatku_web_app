@@ -18,6 +18,7 @@ class TransactionController {
 
       const lastReceipt = await Receipt.findOne({
         where: {
+          institution_id: req.user.institution_id,
           receipt_number: {
             [Op.like]: `${prefix}%`,
           },
@@ -63,6 +64,7 @@ class TransactionController {
       // 1️⃣ Create Muzaki
       const muzaki = await Muzaki.create(
         {
+          institution_id: req.user.institution_id,
           name,
           phone,
           address,
@@ -75,6 +77,7 @@ class TransactionController {
       const receipt = await Receipt.create(
         {
           muzaki_id: muzaki.id,
+          institution_id: req.user.institution_id,
           receipt_number,
           date: new Date(),
           number_of_people,
@@ -146,6 +149,9 @@ class TransactionController {
   static async getAll(req, res) {
     try {
       const transactions = await Receipt.findAll({
+        where: {
+          institution_id: req.user.institution_id,
+        },
         include: [
           {
             model: Muzaki,

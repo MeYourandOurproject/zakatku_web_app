@@ -2,39 +2,29 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable("Receipts", {
+    await queryInterface.createTable("Zakatinstitutions", {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
-      muzaki_id: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-        references: {
-          model: "Muzakis",
-          key: "id",
-        },
-        onUpdate: "CASCADE",
-        onDelete: "RESTRICT",
-      },
-      receipt_number: {
+      name: {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      date: {
-        type: Sequelize.DATEONLY,
+      type: {
+        type: Sequelize.ENUM("mosque", "laz", "school", "organization"),
         allowNull: false,
+        defaultValue: "mosque",
       },
-      number_of_people: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-        defaultValue: 1,
-      },
-      notes: {
+      address: {
         type: Sequelize.TEXT,
-        allowNull: true,
+        allowNull: false,
+      },
+      phone: {
+        type: Sequelize.STRING,
+        allowNull: false,
       },
       createdAt: {
         allowNull: false,
@@ -47,6 +37,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable("Receipts");
+    await queryInterface.dropTable("Zakatinstitutions");
   },
 };

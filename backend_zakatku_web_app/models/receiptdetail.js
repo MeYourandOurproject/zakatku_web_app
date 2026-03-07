@@ -10,7 +10,7 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       Receiptdetail.belongsTo(models.Receipt, {
         foreignKey: "receipt_id",
-        as: "recepit",
+        as: "receipt",
       });
     }
   }

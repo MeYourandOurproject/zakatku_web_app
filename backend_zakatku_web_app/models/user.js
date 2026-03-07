@@ -1,56 +1,52 @@
 "use strict";
 const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
-  class Muzaki extends Model {
+  class User extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      Muzaki.belongsTo(models.Zakatinstitution, {
+      User.belongsTo(models.Zakatinstitution, {
         foreignKey: "institution_id",
         as: "institution",
       });
-
-      Muzaki.hasMany(models.Receipt, {
-        foreignKey: "muzaki_id",
-        as: "receipts",
-      });
     }
   }
-  Muzaki.init(
+  User.init(
     {
-      institution_id: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        validate: { notEmpty: true },
-      },
       name: {
         type: DataTypes.STRING,
         allowNull: false,
         validate: { notEmpty: true },
       },
-      phone: {
+      email: {
         type: DataTypes.STRING,
-        allowNull: true,
-      },
-      address: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-      },
-      is_mustahiq: {
-        type: DataTypes.BOOLEAN,
         allowNull: false,
-        defaultValue: false,
+        validate: { notEmpty: true },
+      },
+      password: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        validate: { notEmpty: true },
+      },
+      role: {
+        type: DataTypes.ENUM("superadmin", "admin"),
+        allowNull: false,
+        validate: { notEmpty: true },
+      },
+      institution_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true
       },
     },
     {
       sequelize,
-      modelName: "Muzaki",
-      tableName: "Muzakis",
+      modelName: "User",
+      tableName: "Users",
       freezeTableName: true,
     },
   );
-  return Muzaki;
+  return User;
 };
