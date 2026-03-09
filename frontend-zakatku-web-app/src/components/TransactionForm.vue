@@ -3,7 +3,7 @@
     <div class="card shadow-lg border-0 rounded-4 overflow-hidden h-100">
       <!-- HEADER -->
       <div class="card-header gradient-header py-3 text-white text-center">
-        <h4 class="mb-0 fw-bold">📝 Transaction Form</h4>
+        <h4 class="mb-0 fw-bold">📝 Formulir Transaksi</h4>
       </div>
 
       <div class="card-body p-4">
@@ -115,7 +115,7 @@
 
           <div class="row">
             <div class="col-md-4 mb-3">
-              <label class="form-label custom-label">Zakat Mal</label>
+              <label class="form-label custom-label">Zakat Mal <br>(Rp)</label>
               <input
                 type="text"
                 class="form-control custom-input"
@@ -125,7 +125,7 @@
             </div>
 
             <div class="col-md-4 mb-3">
-              <label class="form-label custom-label">Infaq/Shadaqah</label>
+              <label class="form-label custom-label">Infaq/ <br>Shadaqah</label>
               <input
                 type="text"
                 class="form-control custom-input"
@@ -135,12 +135,13 @@
             </div>
 
             <div class="col-md-4 mb-3">
-              <label class="form-label custom-label">Fidyah</label>
+              <label class="form-label custom-label">Fidyah <br>(Paket)</label>
               <input
-                type="text"
+                type="number"
                 class="form-control custom-input"
+                v-model.number="form.outher_fidyah"
                 :disabled="isDisabled"
-                @input="handleCurrencyInput('outher_fidyah', $event)"
+                min="0"
               />
             </div>
           </div>

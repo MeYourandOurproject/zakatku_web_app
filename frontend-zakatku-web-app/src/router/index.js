@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import DashboardPage from '@/views/DashboardPage.vue'
 import WelcomePage from '@/views/WelconePage.vue'
 import LoginPage from '@/views/LoginPage.vue'
+import SettingPage from '@/views/SettingPage.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -16,12 +17,40 @@ const router = createRouter({
       name: 'loginpage',
       component: LoginPage,
     },
-  {
+    {
       path: '/dashboard',
       name: 'dashboardpage',
       component: DashboardPage,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/setting',
+      name: 'settingpage',
+      component: SettingPage,
     },
   ],
+})
+
+router.beforeEach((to, from, next) => {
+  const token = localStorage.getItem('token')
+
+  if (to.meta.requiresAuth && !token) {
+    next('/login')
+  } else {
+    next()
+  }
+})
+
+router.beforeEach((to, from, next) => {
+  const token = localStorage.getItem('token')
+
+  if (to.meta.requiresAuth && !token) {
+    next('/login')
+  } else if (to.path === '/login' && token) {
+    next('/dashboard')
+  } else {
+    next()
+  }
 })
 
 export default router

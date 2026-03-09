@@ -98,7 +98,9 @@ export default {
 
         // delay redirect
         setTimeout(() => {
-          this.$router.push('/dashboard')
+          this.$router.push('/dashboard').then(() => {
+            window.location.reload()
+          })
         }, 1500)
       } catch (error) {
         alert(error.message)

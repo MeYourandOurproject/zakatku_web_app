@@ -5,11 +5,12 @@
         <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
           <!-- HEADER -->
           <div class="card-header gradient-header text-white py-3 text-center">
-            <h4 class="mb-0 fw-bold">📊 Transaction List</h4>
+            <h4 class="mb-0 fw-bold">📊 Daftar Transaksi Terbaru</h4>
           </div>
 
           <div class="table-responsive p-3">
             <table class="table custom-table text-center align-middle mb-0">
+              <!-- TABLE HEADER -->
               <thead>
                 <tr>
                   <th rowspan="3">NO</th>
@@ -21,6 +22,7 @@
                   <th colspan="3">ZAKAT MAL / INFAQ / FIDYAH</th>
                   <th colspan="2">MUSTAHIQ</th>
                   <th colspan="2">TOTAL</th>
+                  <th rowspan="3">ACTION</th>
                 </tr>
 
                 <tr>
@@ -39,14 +41,15 @@
                 </tr>
 
                 <tr>
-                  <th>KG</th>
-                  <th>RUPIAH</th>
-                  <th>RUPIAH</th>
-                  <th>RUPIAH</th>
-                  <th>PAKET</th>
+                  <th>kg</th>
+                  <th>Rp.</th>
+                  <th>Rp.</th>
+                  <th>Rp.</th>
+                  <th>Paket</th>
                 </tr>
               </thead>
 
+              <!-- TABLE BODY -->
               <tbody>
                 <tr v-for="(trx, index) in transactions" :key="trx.id">
                   <td>{{ index + 1 }}</td>
@@ -63,40 +66,37 @@
                     {{ trx.number_of_people }}
                   </td>
 
+                  <td>{{ getQty(trx, 'RICE') || '' }}</td>
+
+                  <td>{{ formatCurrency(getTotal(trx, 'CASH')) }}</td>
+
+                  <td>{{ formatCurrency(getTotal(trx, 'MAL')) }}</td>
+
+                  <td>{{ formatCurrency(getTotal(trx, 'INFAQ/SHADAQAH')) }}</td>
+
+                  <td>{{ getQty(trx, 'FIDYAH') || '' }}</td>
+
                   <td>
-                    {{ getDetail(trx, 'RICE') || '' }}
-                  </td>
-
-                  <td class="">
-                    {{ formatCurrency(getDetail(trx, 'CASH')) }}
-                  </td>
-
-                  <td class="">
-                    {{ formatCurrency(getDetail(trx, 'MAL')) }}
-                  </td>
-
-                  <td class="">
-                    {{ formatCurrency(getDetail(trx, 'INFAQ/SHADAQAH')) }}
-                  </td>
-
-                  <td class="">
-                    {{ formatCurrency(getDetail(trx, 'FIDYAH')) || '' }}
+                    <span v-if="trx.muzaki?.is_mustahiq" class="badge bg-success">✔</span>
                   </td>
 
                   <td>
-                    <span v-if="trx.muzaki?.is_mustahiq" class="badge bg-success"> ✔ </span>
-                  </td>
-
-                  <td>
-                    <span v-if="!trx.muzaki?.is_mustahiq" class="badge bg-secondary"> ✔ </span>
+                    <span v-if="!trx.muzaki?.is_mustahiq" class="badge bg-secondary">✔</span>
                   </td>
 
                   <td class="total-rice">
-                    {{ calculateTotalRice(trx) || '' }}
+                    {{ calculateTotalRice(trx) }}
                   </td>
 
-                  <td class="total-money money">
+                  <td class="total-money">
                     {{ formatCurrency(calculateTotalMoney(trx)) }}
+                  </td>
+
+                  <!-- ACTION -->
+                  <td>
+                    <button class="btn btn-sm btn-danger" @click="openDeleteModal(trx.muzaki?.id)">
+                      ✕
+                    </button>
                   </td>
                 </tr>
 
@@ -106,22 +106,42 @@
               </tbody>
             </table>
           </div>
+        </div>
+      </div>
+    </div>
 
-          <!-- EXPORT BUTTON -->
-          <div class="text-end p-3 border-top">
-            <button
-              class="btn btn-success rounded-3 px-4 fw-semibold shadow-sm"
-              @click="exportExcel"
-              :disabled="exporting"
-            >
-              <span v-if="!exporting"> ⬇ Export to Excel </span>
-
-              <span v-else>
-                <span class="spinner-border spinner-border-sm me-2"></span>
-                Exporting...
-              </span>
-            </button>
+    <!-- DELETE MODAL -->
+    <div class="modal fade" id="deleteModal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Konfirmasi Hapus</h5>
+            <button class="btn-close" data-bs-dismiss="modal"></button>
           </div>
+
+          <div class="modal-body text-start">Apakah anda yakin ingin menghapus data ini?</div>
+
+          <div class="modal-footer">
+            <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+
+            <button class="btn btn-danger" @click="deleteMuzaki">Hapus</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOAST -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+      <div id="liveToast" class="toast align-items-center text-bg-success border-0">
+        <div class="d-flex">
+          <div class="toast-body">
+            {{ toastMessage }}
+          </div>
+          <button
+            type="button"
+            class="btn-close btn-close-white me-2 m-auto"
+            data-bs-dismiss="toast"
+          ></button>
         </div>
       </div>
     </div>
@@ -129,15 +149,16 @@
 </template>
 
 <script>
+import { Modal, Toast } from 'bootstrap'
+
 const API_BASE_URL = import.meta.env.VITE_APP_API_BASE_URL
 
 export default {
-  name: 'TransactionTable',
-
   data() {
     return {
       transactions: [],
-      exporting: false,
+      selectedMuzakiId: null,
+      toastMessage: '',
     }
   },
 
@@ -147,84 +168,80 @@ export default {
 
   methods: {
     async fetchData() {
+      const token = localStorage.getItem('token')
+
+      const res = await fetch(`${API_BASE_URL}/api/receipts?page=1&limit=10`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      const result = await res.json()
+
+      this.transactions = result.data
+    },
+
+    openDeleteModal(id) {
+      this.selectedMuzakiId = id
+
+      const modal = new Modal(document.getElementById('deleteModal'))
+
+      modal.show()
+    },
+
+    async deleteMuzaki() {
       try {
         const token = localStorage.getItem('token')
 
-        const res = await fetch(`${API_BASE_URL}/api/receipts?page=1&limit=10`, {
+        const res = await fetch(`${API_BASE_URL}/api/muzakis/${this.selectedMuzakiId}`, {
+          method: 'DELETE',
           headers: {
             Authorization: `Bearer ${token}`,
           },
         })
 
-        const result = await res.json()
+        if (!res.ok) throw new Error()
 
-        this.transactions = result.data
-      } catch (error) {
-        console.error('Failed fetching transactions:', error)
+        const modalEl = document.getElementById('deleteModal')
+        Modal.getInstance(modalEl).hide()
+
+        this.toastMessage = 'Data berhasil dihapus'
+
+        const toast = new Toast(document.getElementById('liveToast'))
+        toast.show()
+
+        setTimeout(() => {
+          window.location.reload()
+        }, 1000)
+      } catch {
+        this.toastMessage = 'Gagal menghapus data'
+
+        const toast = new Toast(document.getElementById('liveToast'))
+        toast.show()
       }
     },
 
-    async exportExcel() {
-      try {
-        this.exporting = true
-
-        const response = await fetch(`${API_BASE_URL}/api/export/excel`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-        })
-
-        if (!response.ok) throw new Error('Export failed')
-
-        const contentDisposition = response.headers.get('Content-Disposition')
-
-        let fileName = 'Laporan_Zakat.xlsx'
-
-        if (contentDisposition && contentDisposition.includes('filename=')) {
-          fileName = contentDisposition.split('filename=')[1].replace(/"/g, '')
-        }
-
-        const blob = await response.blob()
-        const url = window.URL.createObjectURL(blob)
-
-        const link = document.createElement('a')
-
-        link.href = url
-        link.download = fileName
-
-        document.body.appendChild(link)
-
-        link.click()
-        link.remove()
-
-        window.URL.revokeObjectURL(url)
-      } catch (error) {
-        console.error('Export failed:', error)
-        alert('Gagal export data')
-      } finally {
-        this.exporting = false
-      }
+    getQty(trx, sub) {
+      const item = trx.details?.find((d) => d.sub_category === sub)
+      return item?.quantity ? parseFloat(item.quantity) : 0
     },
 
-    getDetail(trx, subCategory) {
-      if (!trx.details) return 0
-
-      const item = trx.details.find((d) => d.sub_category === subCategory)
-
-      return item ? parseFloat(item.quantity) : 0
+    getTotal(trx, sub) {
+      const item = trx.details?.find((d) => d.sub_category === sub)
+      return item?.total ? parseFloat(item.total) : 0
     },
 
     calculateTotalRice(trx) {
-      return this.getDetail(trx, 'RICE')
+      return this.getQty(trx, 'RICE')
     },
 
     calculateTotalMoney(trx) {
-      const cash = this.getDetail(trx, 'CASH')
-      const mal = this.getDetail(trx, 'MAL')
-      const infaq = this.getDetail(trx, 'INFAQ/SHADAQAH')
-      const fidyah = this.getDetail(trx, 'FIDYAH')
-
-      return cash + mal + infaq + fidyah
+      return (
+        this.getTotal(trx, 'CASH') +
+        this.getTotal(trx, 'MAL') +
+        this.getTotal(trx, 'INFAQ/SHADAQAH') +
+        this.getTotal(trx, 'FIDYAH')
+      )
     },
 
     formatCurrency(value) {
@@ -278,7 +295,7 @@ export default {
 }
 
 .money {
-  text-align: right;
+  text-align: center;
 }
 
 .custom-table td {
