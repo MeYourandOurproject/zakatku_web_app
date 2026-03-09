@@ -7,9 +7,11 @@ const muzakiRouter = require("./muzakiRouter");
 const receiptRouter = require("./receiptRouter");
 const receiptDetailRouter = require("./receiptRouter");
 const transactionRouter = require("./transactionRouter");
+const settingRouter = require("./settingRouter");
 
 const { exportZakatExcel } = require("../controllers/exportController");
 
+router.use("/settings", settingRouter);
 router.use("/users", userRouter);
 router.get("/export/excel", authen, exportZakatExcel);
 

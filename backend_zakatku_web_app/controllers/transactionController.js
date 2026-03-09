@@ -1,13 +1,16 @@
-const { Receipt, Receiptdetail, Muzaki, sequelize } = require("../models");
+const {
+  Receipt,
+  Receiptdetail,
+  Muzaki,
+  Setting,
+  sequelize,
+} = require("../models");
 const { Op } = require("sequelize");
 
 class TransactionController {
-  // CREATE full transaction (receipt + details)
+  // GENERATE RECEIPT NUMBER
   static async generateNumber(req, res) {
     try {
-      const { Receipt } = require("../models");
-      const { Op } = require("sequelize");
-
       const today = new Date();
 
       const day = String(today.getDate()).padStart(2, "0");
@@ -41,6 +44,7 @@ class TransactionController {
     }
   }
 
+  // CREATE TRANSACTION
   static async create(req, res) {
     const t = await sequelize.transaction();
 
@@ -54,12 +58,18 @@ class TransactionController {
         number_of_people,
         zakat_rice,
         zakat_cash,
-        // outher_barang,
         outher_mal,
         outher_infaq,
         outher_fidyah,
         notes,
       } = req.body;
+
+      // ambil harga fidyah dari settings
+      const fidyahSetting = await Setting.findOne({
+        where: { key: "fidyah_price" },
+      });
+
+      const fidyahPrice = fidyahSetting ? Number(fidyahSetting.value) : 0;
 
       // 1️⃣ Create Muzaki
       const muzaki = await Muzaki.create(
@@ -86,9 +96,9 @@ class TransactionController {
         { transaction: t },
       );
 
-      // 3️⃣ Prepare Details
       const details = [];
 
+      // ZAKAT BERAS
       if (zakat_rice > 0)
         details.push({
           receipt_id: receipt.id,
@@ -97,40 +107,48 @@ class TransactionController {
           quantity: zakat_rice,
         });
 
+      // ZAKAT CASH
       if (zakat_cash > 0)
         details.push({
           receipt_id: receipt.id,
           category: "ZAKAT_FITRAH",
           sub_category: "CASH",
-          quantity: zakat_cash,
+          total: zakat_cash,
         });
 
+      // MAL
       if (outher_mal > 0)
         details.push({
           receipt_id: receipt.id,
           category: "OTHER",
           sub_category: "MAL",
-          quantity: outher_mal,
+          total: outher_mal,
         });
 
+      // INFAQ
       if (outher_infaq > 0)
         details.push({
           receipt_id: receipt.id,
           category: "OTHER",
           sub_category: "INFAQ/SHADAQAH",
-          quantity: outher_infaq,
+          total: outher_infaq,
         });
 
+      // FIDYAH
       if (outher_fidyah > 0)
         details.push({
           receipt_id: receipt.id,
           category: "OTHER",
           sub_category: "FIDYAH",
           quantity: outher_fidyah,
+          price: fidyahPrice,
         });
 
       if (details.length > 0) {
-        await Receiptdetail.bulkCreate(details, { transaction: t });
+        await Receiptdetail.bulkCreate(details, {
+          transaction: t,
+          individualHooks: true,
+        });
       }
 
       await t.commit();
@@ -145,7 +163,7 @@ class TransactionController {
     }
   }
 
-  // GET All Transactions (with details)
+  // GET ALL TRANSACTIONS
   static async getAll(req, res) {
     try {
       const transactions = await Receipt.findAll({
@@ -171,7 +189,7 @@ class TransactionController {
     }
   }
 
-  // GET One Transaction
+  // GET ONE TRANSACTION
   static async getById(req, res) {
     try {
       const { id } = req.params;

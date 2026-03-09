@@ -1,11 +1,12 @@
 const express = require("express");
 const router = express.Router();
 const MuzakiController = require("../controllers/muzakiController");
+const authen = require("../middlewares/auth");
 
-router.post("/", MuzakiController.create);
-router.get("/", MuzakiController.GetAll);
-router.get("/:id", MuzakiController.GetById);
-router.put("/:id", MuzakiController.update);
-router.delete("/:id", MuzakiController.delete);
+router.post("/", authen, MuzakiController.create);
+router.get("/", authen, MuzakiController.GetAll);
+router.get("/:id", authen, MuzakiController.GetById);
+router.put("/:id", authen, MuzakiController.update);
+router.delete("/:id", authen, MuzakiController.delete);
 
 module.exports = router;

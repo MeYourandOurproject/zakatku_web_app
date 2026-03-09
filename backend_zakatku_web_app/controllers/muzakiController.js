@@ -45,13 +45,12 @@ class MuzakiController {
 
       const { count, rows } = await Muzaki.findAndCountAll({
         where: {
+          institution_id: req.user.institution_id,
           name: {
             [Op.like]: `%${search}%`,
           },
         },
-        include: [
-          { model: Receipt, as: "receipts" },
-        ],
+        include: [{ model: Receipt, as: "receipts" }],
         limit: parseInt(limit),
         offset: parseInt(offset),
         order: [["createdAt", "DESC"]],
@@ -139,29 +138,36 @@ class MuzakiController {
   // DELETE MUZAKI
   // =========================
   static async delete(req, res) {
-    try {
-      const { id } = req.params;
+  try {
+    const { id } = req.params;
 
-      const muzaki = await Muzaki.findByPk(id);
+    const muzaki = await Muzaki.findByPk(id);
 
-      if (!muzaki) {
-        return res.status(404).json({
-          message: "Muzaki not found",
-        });
-      }
-
-      await muzaki.destroy();
-
-      return res.status(200).json({
-        message: "Muzaki deleted successfully",
-      });
-    } catch (error) {
-      return res.status(500).json({
-        message: "Internal server error",
-        error: error.message,
+    if (!muzaki) {
+      return res.status(404).json({
+        message: "Muzaki not found",
       });
     }
+
+    // hapus semua receipt milik muzaki
+    await Receipt.destroy({
+      where: { muzaki_id: id },
+    });
+
+    // hapus muzaki
+    await muzaki.destroy();
+
+    return res.status(200).json({
+      message: "Muzaki, receipts and receipt details deleted successfully",
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      message: "Internal server error",
+      error: error.message,
+    });
   }
+}
 }
 
 module.exports = MuzakiController;

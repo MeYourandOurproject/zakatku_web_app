@@ -4,9 +4,19 @@ const db = require("../models");
 const Receipt = db.Receipt;
 const Muzaki = db.Muzaki;
 const Receiptdetail = db.Receiptdetail;
+const Setting = db.Setting;
 
 exports.exportZakatExcel = async (req, res) => {
   try {
+    const settings = await Setting.findAll();
+
+    const settingMap = {};
+    settings.forEach((s) => {
+      settingMap[s.key] = s.value;
+    });
+
+    const fidyahPrice = Number(settingMap.fidyah_price) || 0;
+
     const receipts = await Receipt.findAll({
       where: {
         institution_id: req.user.institution_id,
@@ -30,7 +40,7 @@ exports.exportZakatExcel = async (req, res) => {
     worksheet.getCell("A1").alignment = { horizontal: "center" };
 
     worksheet.mergeCells("A2:M2");
-    worksheet.getCell("A2").value = "Masjid Nurul Fallah - Puri Melia Asri";
+    worksheet.getCell("A2").value = "";
     worksheet.getCell("A2").alignment = { horizontal: "center" };
 
     worksheet.addRow([]);
@@ -99,23 +109,24 @@ exports.exportZakatExcel = async (req, res) => {
       let cash = 0;
       let mal = 0;
       let infaq = 0;
-      let fidyah = 0;
+      let fidyah_qty = 0;
 
       (trx.details || []).forEach((d) => {
         if (d.category === "ZAKAT_FITRAH") {
           if (d.sub_category === "RICE") rice += Number(d.quantity) || 0;
-          if (d.sub_category === "CASH") cash += Number(d.quantity) || 0;
+          if (d.sub_category === "CASH") cash += Number(d.total) || 0;
         }
 
         if (d.category === "OTHER") {
-          if (d.sub_category === "MAL") mal += Number(d.quantity) || 0;
+          if (d.sub_category === "MAL") mal += Number(d.total) || 0;
           if (d.sub_category === "INFAQ/SHADAQAH")
-            infaq += Number(d.quantity) || 0;
-          if (d.sub_category === "FIDYAH") fidyah += Number(d.quantity) || 0;
+            infaq += Number(d.total) || 0;
+          if (d.sub_category === "FIDYAH") fidyah_qty += Number(d.quantity) || 0;
         }
       });
 
-      const total = cash + mal + infaq + fidyah;
+      const fidyah_total = fidyah_qty * fidyahPrice;
+      const total = cash + mal + infaq + fidyah_total;
 
       const row = worksheet.getRow(rowIndex);
 
@@ -129,14 +140,14 @@ exports.exportZakatExcel = async (req, res) => {
         cash > 0 ? cash : "",
         mal > 0 ? mal : "",
         infaq > 0 ? infaq : "",
-        fidyah > 0 ? fidyah : "",
+        fidyah_qty > 0 ? fidyah_qty : "",
         trx.muzaki?.is_mustahiq ? "✓" : "",
         trx.muzaki && !trx.muzaki.is_mustahiq ? "✓" : "",
         total > 0 ? total : "",
       ];
 
       // Format Rp hanya jika ada nilai
-      [7, 8, 9, 10, 13].forEach((col) => {
+      [7, 8, 9, 13].forEach((col) => {
         if (row.getCell(col).value !== "") {
           row.getCell(col).numFmt = '"Rp"#,##0';
         }
