@@ -106,6 +106,22 @@
               </tbody>
             </table>
           </div>
+
+          <!-- EXPORT BUTTON -->
+          <div class="text-end p-3 border-top">
+            <button
+              class="btn btn-success rounded-3 px-4 fw-semibold shadow-sm"
+              @click="exportExcel"
+              :disabled="exporting"
+            >
+              <span v-if="!exporting">⬇ Export to Excel</span>
+
+              <span v-else>
+                <span class="spinner-border spinner-border-sm me-2"></span>
+                Exporting...
+              </span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -218,6 +234,47 @@ export default {
 
         const toast = new Toast(document.getElementById('liveToast'))
         toast.show()
+      }
+    },
+
+    async exportExcel() {
+      try {
+        this.exporting = true
+
+        const response = await fetch(`${API_BASE_URL}/api/export/excel`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        })
+
+        if (!response.ok) throw new Error('Export failed')
+
+        const contentDisposition = response.headers.get('Content-Disposition')
+
+        let fileName = 'Laporan_Zakat.xlsx'
+
+        if (contentDisposition && contentDisposition.includes('filename=')) {
+          fileName = contentDisposition.split('filename=')[1].replace(/"/g, '')
+        }
+
+        const blob = await response.blob()
+        const url = window.URL.createObjectURL(blob)
+
+        const link = document.createElement('a')
+
+        link.href = url
+        link.download = fileName
+
+        document.body.appendChild(link)
+        link.click()
+        link.remove()
+
+        window.URL.revokeObjectURL(url)
+      } catch (error) {
+        console.error('Export failed:', error)
+        alert('Gagal export data')
+      } finally {
+        this.exporting = false
       }
     },
 
