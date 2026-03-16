@@ -25,12 +25,12 @@
                 </button>
 
                 <div v-if="showMenu" class="dropdown-menu-custom shadow text-dark">
-                  <a class="dropdown-item" href="/setting">
+                  <!-- <a class="dropdown-item" href="/setting">
                     <i class="bi bi-gear me-2"></i>
                     Settings
-                  </a>
+                  </a> -->
 
-                  <div class="dropdown-divider"></div>
+                  <!-- <div class="dropdown-divider"></div> -->
 
                   <a
                     class="dropdown-item text-danger fw-bold"
