@@ -33,6 +33,9 @@
             {{ loading ? 'Processing...' : '🚀 Login' }}
           </button>
         </div>
+        <div class="text-center mt-3">
+          <small>Belum punya akun? <router-link to="/register">Register</router-link></small>
+        </div>
       </form>
     </div>
     <div class="toast-container position-fixed top-0 end-0 p-3">
