@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import DashboardPage from '@/views/DashboardPage.vue'
+import DashboardSuperadminPage from '@/views/DashboardSuperadminPage.vue'
 import WelcomePage from '@/views/WelconePage.vue'
 import LoginPage from '@/views/LoginPage.vue'
 import RegisterPage from '@/views/RegisterPage.vue'
@@ -30,6 +31,12 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: '/dashboard-superadmin',
+      name: 'dashboardsuperadminpage',
+      component: DashboardSuperadminPage,
+      meta: { requiresAuth: true },
+    },
+    {
       path: '/setting',
       name: 'settingpage',
       component: SettingPage,
@@ -53,7 +60,9 @@ router.beforeEach((to, from, next) => {
   if (to.meta.requiresAuth && !token) {
     next('/login')
   } else if (to.path === '/login' && token) {
-    next('/dashboard')
+    const user = JSON.parse(localStorage.getItem('user'))
+    const dashboardPath = user?.role === 'superadmin' ? '/dashboard-superadmin' : '/dashboard'
+    next(dashboardPath)
   } else {
     next()
   }

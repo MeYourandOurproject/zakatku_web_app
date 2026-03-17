@@ -99,9 +99,10 @@ export default {
         const toast = new Toast(this.$refs.successToast)
         toast.show()
 
-        // delay redirect
+        // delay redirect based on role
         setTimeout(() => {
-          this.$router.push('/dashboard').then(() => {
+          const dashboardPath = data.user.role === 'superadmin' ? '/dashboard-superadmin' : '/dashboard'
+          this.$router.push(dashboardPath).then(() => {
             window.location.reload()
           })
         }, 1500)
