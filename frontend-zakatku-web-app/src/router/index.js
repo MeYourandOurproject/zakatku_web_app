@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import DashboardPage from '@/views/DashboardPage.vue'
 import DashboardSuperadminPage from '@/views/DashboardSuperadminPage.vue'
-import WelcomePage from '@/views/WelconePage.vue'
+import WelcomePage from '@/views/WelcomePage.vue'
 import LoginPage from '@/views/LoginPage.vue'
 import RegisterPage from '@/views/RegisterPage.vue'
 import SettingPage from '@/views/SettingPage.vue'

@@ -19,14 +19,14 @@
                     <div class="value">{{ summary.muzaki }}</div>
                   </div>
                 </div>
-                <div class="col-md-2 my-2">
+                <div class="col-md-3 my-2">
                   <div class="summary-card text-white">
                     <div class="title fst-italic">Jumlah Jiwa</div>
                     <div class="value">{{ summary.jiwa }}</div>
                   </div>
                 </div>
 
-                <div class="col-md-4 my-2">
+                <div class="col-md-3 my-2">
                   <div class="summary-card text-white">
                     <div class="title fst-italic">Fitrah Beras</div>
                     <div class="value">{{ summary.rice }} Kg</div>

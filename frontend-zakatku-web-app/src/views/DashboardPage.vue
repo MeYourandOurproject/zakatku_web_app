@@ -1,81 +1,82 @@
 <template>
-  <div class="container-fluid">
-    <div class="container-fluid dashboardpage p-2 my-3">
+  <div class="dashboard-layout">
+    <!-- SIDEBAR/NAVBAR -->
+    <div class="sidebar-navbar">
+      <!-- Header -->
+      <div class="navbar-header">
+        <div class="navbar-brand">
+          <i class="bi bi-mosque"></i>
+          <span>Zakatku Web App</span>
+        </div>
+      </div>
 
-      <!-- HEADER IDENTITAS -->
-      <div class="row m-0 mb-3">
-        <div class="col-12">
-          <div class="card shadow-sm p-3 px-4 gradient-header text-white rounded-4">
-            <div class="d-flex justify-content-between align-items-center">
+      <!-- User Info -->
+      <div class="user-info text-start">
+        <div class="user-avatar d-flex align-items-start">
+          <i class="bi bi-person-circle"></i>
+        </div>
+        <div class="user-details">
+          <p class="user-name">{{ admin.name }}</p>
+          <p class="institution-name">{{ institution.name }}</p>
+          <p class="user-time">{{ today }} | {{ time }}</p>
+        </div>
+      </div>
 
-              <!-- KIRI -->
-              <div class="text-start">
-                <div class="fw-light small">Assalamu'alaikum 👋</div>
+      <hr class="divider">
 
-                <div class="fw-bold">
-                  Selamat {{ greeting }}, {{ admin.name }}
-                </div>
+      <!-- Navigation Menu -->
+      <div class="nav-menu">
+        <a 
+          v-for="menu in menuItems" 
+          :key="menu.id"
+          @click="currentPage = menu.page"
+          :class="['nav-item', { active: currentPage === menu.page }]"
+        >
+          <i :class="menu.icon"></i>
+          <span>{{ menu.label }}</span>
+        </a>
+      </div>
 
-                <div class="small opacity-75">
-                  {{ institution.name }} -
-                  <span class="small opacity-75">
-                    {{ today }} | {{ time }} WIB
-                  </span>
-                </div>
-              </div>
+      <hr class="divider">
 
-              <!-- USER DROPDOWN -->
-              <div class="user-dropdown" ref="dropdown">
-                <button
-                  class="btn btn-light"
-                  @click.stop="toggleMenu"
-                >
-                  <i class="bi bi-person-circle fs-5"></i>
-                </button>
+      <!-- Logout Button -->
+      <button 
+        class="btn-logout"
+        data-bs-toggle="modal"
+        data-bs-target="#logoutModal"
+      >
+        <i class="bi bi-box-arrow-right"></i>
+        <span>Logout</span>
+      </button>
+    </div>
 
-                <div v-if="showMenu" class="dropdown-menu-custom shadow text-dark">
-                  <!-- <a class="dropdown-item" href="/setting">
-                    <i class="bi bi-gear me-2"></i>
-                    Settings
-                  </a> -->
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+      <!-- DASHBOARD PAGE -->
+      <div v-if="currentPage === 'dashboard'" class="page-content">
+        <!-- ROW ATAS -->
+        <div class="row align-items-stretch mb-4">
+          <div class="col-12 col-md-4 d-flex">
+            <TransactionForm class="w-100" />
+          </div>
 
-                  <div class="dropdown-divider"></div>
+          <div class="col-12 col-md-8 d-flex">
+            <DashboardView class="w-100" />
+          </div>
+        </div>
 
-                  <a
-                    class="dropdown-item text-danger fw-bold"
-                    data-bs-toggle="modal"
-                    data-bs-target="#logoutModal"
-                    @click="showMenu=false"
-                  >
-                    <i class="bi bi-box-arrow-right me-2"></i>
-                    Logout
-                  </a>
-                </div>
-              </div>
-
-            </div>
+        <!-- ROW BAWAH -->
+        <div class="row">
+          <div class="col-12">
+            <TransactionTable />
           </div>
         </div>
       </div>
 
-      <!-- ROW ATAS -->
-      <div class="row align-items-stretch">
-        <div class="col-12 col-md-4 d-flex">
-          <TransactionForm class="w-100" />
-        </div>
-
-        <div class="col-12 col-md-8 d-flex">
-          <DashboardView class="w-100" />
-        </div>
+      <!-- SETTING PAGE -->
+      <div v-if="currentPage === 'settings'" class="page-content">
+        <SettingPage />
       </div>
-
-      <!-- ROW BAWAH -->
-      <div class="row">
-        <div class="col-12">
-          <TransactionTable />
-        </div>
-      </div>
-
     </div>
   </div>
 
@@ -97,7 +98,6 @@
   <div class="modal fade" id="logoutModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content rounded-4 shadow">
-
         <div class="modal-header">
           <h5 class="modal-title">Konfirmasi Logout</h5>
           <button class="btn-close" data-bs-dismiss="modal"></button>
@@ -117,7 +117,6 @@
             {{ loading ? 'Processing...' : 'Logout' }}
           </button>
         </div>
-
       </div>
     </div>
   </div>
@@ -128,6 +127,7 @@ import { Toast, Modal } from 'bootstrap'
 import DashboardView from '@/components/DashboardView.vue'
 import TransactionForm from '@/components/TransactionForm.vue'
 import TransactionTable from '@/components/TransactionTable.vue'
+import SettingPage from '@/views/SettingPage.vue'
 
 export default {
   name: 'DashboardPage',
@@ -136,6 +136,7 @@ export default {
     TransactionForm,
     DashboardView,
     TransactionTable,
+    SettingPage,
   },
 
   data() {
@@ -145,19 +146,25 @@ export default {
       today: '',
       time: '',
       loading: false,
-      greeting: '',
-      showMenu: false,
+      currentPage: 'dashboard',
+      menuItems: [
+        {
+          id: 1,
+          label: 'Dashboard',
+          page: 'dashboard',
+          icon: 'bi bi-graph-up',
+        },
+        {
+          id: 2,
+          label: 'Settings',
+          page: 'settings',
+          icon: 'bi bi-gear',
+        },
+      ],
     }
   },
 
   created() {
-    const hour = new Date().getHours()
-
-    if (hour < 12) this.greeting = 'Pagi'
-    else if (hour < 15) this.greeting = 'Siang'
-    else if (hour < 18) this.greeting = 'Sore'
-    else this.greeting = 'Malam'
-
     const user = JSON.parse(localStorage.getItem('user'))
 
     if (user) {
@@ -166,7 +173,6 @@ export default {
     }
 
     const date = new Date()
-
     this.today = date.toLocaleDateString('id-ID', {
       day: 'numeric',
       month: 'long',
@@ -174,37 +180,14 @@ export default {
     })
 
     this.updateClock()
-
     setInterval(() => {
       this.updateClock()
     }, 1000)
   },
 
-  mounted() {
-    document.addEventListener("click", this.handleClickOutside)
-  },
-
-  beforeUnmount() {
-    document.removeEventListener("click", this.handleClickOutside)
-  },
-
   methods: {
-
-    toggleMenu() {
-      this.showMenu = !this.showMenu
-    },
-
-    handleClickOutside(event) {
-      const dropdown = this.$refs.dropdown
-
-      if (dropdown && !dropdown.contains(event.target)) {
-        this.showMenu = false
-      }
-    },
-
     updateClock() {
       const now = new Date()
-
       this.time = now.toLocaleTimeString('id-ID', {
         hour: '2-digit',
         minute: '2-digit',
@@ -235,7 +218,6 @@ export default {
             window.location.reload()
           })
         }, 1000)
-
       } finally {
         this.loading = false
       }
@@ -244,42 +226,217 @@ export default {
 }
 </script>
 
-<style>
-
-.dashboardpage{
-  min-height:100vh;
+<style scoped>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-.gradient-header{
-  background: linear-gradient(135deg,#1e3c72,#2a5298);
+.dashboard-layout {
+  display: flex;
+  min-height: 100vh;
+  background: #f8f9fa;
 }
 
-
-/* dropdown container */
-.user-dropdown{
-  position:relative;
+/* SIDEBAR NAVBAR */
+.sidebar-navbar {
+  width: 280px;
+  background: linear-gradient(135deg, #1e3c72, #2a5298);
+  color: white;
+  padding: 1.5rem;
+  position: fixed;
+  height: 100vh;
+  overflow-y: auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* dropdown menu */
-.dropdown-menu-custom{
-  position:absolute;
-  right:0;
-  top:48px;
-  min-width:170px;
-  background:white;
-  border-radius:12px;
-  padding:8px 0;
-  z-index:999;
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 2rem;
 }
 
-/* dropdown item */
-.dropdown-menu-custom .dropdown-item{
-  padding:8px 16px;
-  cursor:pointer;
+.navbar-brand i {
+  font-size: 28px;
 }
 
-.dropdown-menu-custom .dropdown-item:hover{
-  background:#f5f5f5;
+/* USER INFO */
+.user-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
 }
 
+.user-avatar {
+  font-size: 40px;
+  flex-shrink: 0;
+}
+
+.user-details {
+  flex: 1;
+}
+
+.user-details p {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.user-name {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.institution-name {
+  font-size: 0.85rem;
+  opacity: 0.9;
+  margin-bottom: 4px;
+}
+
+.user-time {
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+.divider {
+  border-color: rgba(255, 255, 255, 0.2);
+  margin: 1.5rem 0;
+}
+
+/* NAVIGATION MENU */
+.nav-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: white;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  font-weight: 500;
+  border: none;
+  background: none;
+  text-align: left;
+  width: 100%;
+}
+
+.nav-item:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.nav-item.active {
+  background: rgba(255, 255, 255, 0.3);
+  border-left: 4px solid #ffd700;
+  padding-left: 12px;
+}
+
+.nav-item i {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+/* LOGOUT BUTTON */
+.btn-logout {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.1);
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn-logout:hover {
+  background: rgba(255, 73, 73, 0.2);
+  border-color: rgba(255, 73, 73, 0.4);
+}
+
+/* MAIN CONTENT */
+.main-content {
+  margin-left: 280px;
+  flex: 1;
+  padding: 2rem;
+}
+
+.page-content {
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .sidebar-navbar {
+    width: 250px;
+    padding: 1rem;
+  }
+
+  .main-content {
+    margin-left: 250px;
+    padding: 1rem;
+  }
+
+  .user-info {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+@media (max-width: 576px) {
+  .dashboard-layout {
+    flex-direction: column;
+  }
+
+  .sidebar-navbar {
+    width: 100%;
+    height: auto;
+    position: static;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+
+  .main-content {
+    margin-left: 0;
+    padding: 1rem 0.5rem;
+  }
+
+  .nav-menu {
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 4px;
+  }
+
+  .nav-item {
+    white-space: nowrap;
+    padding: 8px 12px;
+  }
+}
 </style>
+
+  

@@ -144,6 +144,7 @@
                     <th class="text-center">Jumlah Penerimaan</th>
                     <th class="text-center">Total Beras (KG)</th>
                     <th class="text-end pe-4">Total Uang (Rp)</th>
+                    <th class="text-center">Aksi</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -165,6 +166,17 @@
                     </td>
                     <td class="text-end pe-4">
                       <span class="fw-semibold text-success">Rp {{ formatCurrency(institution.totalCashRupiah || 0) }}</span>
+                    </td>
+                    <td class="text-center">
+                      <button
+                        class="btn btn-sm btn-danger"
+                        title="Hapus Lembaga"
+                        data-bs-toggle="modal"
+                        data-bs-target="#deleteInstitutionModal"
+                        @click="institutionToDelete = institution"
+                      >
+                        <i class="bi bi-trash"></i>
+                      </button>
                     </td>
                   </tr>
                 </tbody>
@@ -192,6 +204,87 @@
           class="btn-close btn-close-white me-2 m-auto"
           data-bs-dismiss="toast"
         ></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST DELETE SUCCESS -->
+  <div class="toast-container position-fixed top-0 end-0 p-3">
+    <div ref="deleteSuccessToast" class="toast align-items-center text-bg-success border-0">
+      <div class="d-flex">
+        <div class="toast-body">✅ Lembaga berhasil dihapus!</div>
+        <button
+          type="button"
+          class="btn-close btn-close-white me-2 m-auto"
+          data-bs-dismiss="toast"
+        ></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST ERROR -->
+  <div class="toast-container position-fixed top-0 end-0 p-3">
+    <div ref="errorToast" class="toast align-items-center text-bg-danger border-0">
+      <div class="d-flex">
+        <div class="toast-body" ref="errorToastMessage">❌ Terjadi kesalahan!</div>
+        <button
+          type="button"
+          class="btn-close btn-close-white me-2 m-auto"
+          data-bs-dismiss="toast"
+        ></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DELETE INSTITUTION -->
+  <div class="modal fade" id="deleteInstitutionModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content rounded-4 shadow">
+        <div class="modal-header border-danger">
+          <h5 class="modal-title text-danger fw-bold">
+            <i class="bi bi-exclamation-triangle me-2"></i>Hapus Lembaga
+          </h5>
+          <button class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body">
+          <div v-if="institutionToDelete" class="alert alert-warning" role="alert">
+            <strong>⚠️ Perhatian!</strong>
+            <p class="mb-2">Anda akan menghapus lembaga berikut dan SEMUA data terkaitnya:</p>
+            <div class="card bg-light">
+              <div class="card-body">
+                <p class="mb-1"><strong>Nama Lembaga:</strong> {{ institutionToDelete.name }}</p>
+                <p class="mb-1"><strong>Tipe:</strong> {{ formatType(institutionToDelete.type) }}</p>
+                <p class="mb-1"><strong>Jumlah Admin:</strong> {{ institutionToDelete.users?.length || 0 }}</p>
+                <p class="mb-0"><strong>Jumlah Penerimaan:</strong> {{ institutionToDelete.totalReceipts || 0 }}</p>
+              </div>
+            </div>
+            <p class="mt-2 mb-0 text-danger"><strong>Data yang akan dihapus:</strong></p>
+            <ul class="text-danger small">
+              <li>Semua data admin/pengguna</li>
+              <li>Semua transaksi penerimaan</li>
+              <li>Semua detail penerimaan</li>
+              <li>Semua pengaturan lembaga</li>
+            </ul>
+          </div>
+
+          <p class="text-muted mb-0">Tindakan ini tidak dapat dibatalkan. Pastikan Anda yakin sebelum melanjutkan.</p>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">
+            Batal
+          </button>
+
+          <button 
+            class="btn btn-danger" 
+            @click="confirmDeleteInstitution" 
+            :disabled="deletingInstitution"
+          >
+            <span v-if="deletingInstitution" class="spinner-border spinner-border-sm me-2"></span>
+            {{ deletingInstitution ? 'Menghapus...' : 'Ya, Hapus Lembaga' }}
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -240,8 +333,10 @@ export default {
       today: '',
       time: '',
       loading: false,
+      deletingInstitution: false,
       greeting: '',
       showMenu: false,
+      institutionToDelete: null,
       totalInstitutions: 0,
       totalAdmins: 0,
       totalCashRupiah: 0,
@@ -371,6 +466,56 @@ export default {
       return classes[type] || 'bg-secondary'
     },
 
+    async confirmDeleteInstitution() {
+      try {
+        if (!this.institutionToDelete) return
+
+        this.deletingInstitution = true
+        const token = localStorage.getItem('token')
+
+        const response = await fetch(`${API_BASE_URL}/api/users/institutions/${this.institutionToDelete.id}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        })
+
+        if (!response.ok) {
+          const data = await response.json()
+          throw new Error(data.message || 'Failed to delete institution')
+        }
+
+        // Close modal
+        const modalElement = document.getElementById('deleteInstitutionModal')
+        const modalInstance = Modal.getInstance(modalElement)
+        if (modalInstance) modalInstance.hide()
+
+        // Reset form
+        this.institutionToDelete = null
+
+        // Show success toast
+        const toast = new Toast(this.$refs.deleteSuccessToast)
+        toast.show()
+
+        // Refresh institutions list
+        setTimeout(() => {
+          this.fetchInstitutions()
+        }, 500)
+
+      } catch (error) {
+        console.error('Error deleting institution:', error)
+        
+        // Show error message
+        this.$refs.errorToastMessage.textContent = `❌ ${error.message}`
+        const errorToast = new Toast(this.$refs.errorToast)
+        errorToast.show()
+
+      } finally {
+        this.deletingInstitution = false
+      }
+    },
+
     async confirmLogout() {
       try {
         this.loading = true
@@ -404,60 +549,51 @@ export default {
 </script>
 
 <style scoped>
+
 .dashboardpage {
   min-height: 100vh;
 }
 
 .gradient-header-superadmin {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #667eea, #764ba2);
 }
 
+/* STAT ICON */
+.stat-icon-bg {
+  width: 60px;
+  height: 60px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* dropdown container */
 .user-dropdown {
   position: relative;
 }
 
+/* dropdown menu */
 .dropdown-menu-custom {
   position: absolute;
-  top: 100%;
   right: 0;
+  top: 48px;
+  min-width: 170px;
   background: white;
-  min-width: 200px;
-  border-radius: 0.5rem;
-  z-index: 1000;
-}
-
-.dropdown-item {
-  padding: 0.5rem 1rem;
-  display: block;
-  width: 100%;
-  text-align: left;
-  cursor: pointer;
-  text-decoration: none;
-  color: inherit;
-  border: none;
-  background: none;
-}
-
-.dropdown-item:hover {
-  background-color: #f0f0f0;
-}
-
-.stat-icon-bg {
-  width: 60px;
-  height: 60px;
   border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  padding: 8px 0;
+  z-index: 999;
 }
 
-.table-hover tbody tr:hover {
-  background-color: #f8f9fa;
+/* dropdown item */
+.dropdown-menu-custom .dropdown-item {
+  padding: 8px 16px;
+  cursor: pointer;
 }
 
-.badge {
-  font-weight: 500;
-  padding: 0.5rem 0.75rem;
+.dropdown-menu-custom .dropdown-item:hover {
+  background: #f5f5f5;
 }
+
 </style>
-
