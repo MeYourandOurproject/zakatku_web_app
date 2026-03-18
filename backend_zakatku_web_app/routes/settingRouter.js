@@ -1,23 +1,24 @@
 const express = require("express");
 const router = express.Router();
 const SettingController = require("../controllers/settingController");
+const authen = require("../middlewares/auth");
 
 // GET ALL
-router.get("/", SettingController.getAll);
+router.get("/", authen, SettingController.getAll);
 
 // GET BY ID
-router.get("/:id", SettingController.getById);
+router.get("/:id", authen, SettingController.getById);
 
 // GET BY KEY
-router.get("/key/:key", SettingController.getByKey);
+router.get("/key/:key", authen, SettingController.getByKey);
 
 // CREATE
-router.post("/", SettingController.create);
+router.post("/", authen, SettingController.create);
 
 // UPDATE
-router.put("/:id", SettingController.update);
+router.put("/:id", authen, SettingController.update);
 
 // DELETE
-router.delete("/:id", SettingController.delete);
+router.delete("/:id", authen, SettingController.delete);
 
 module.exports = router;

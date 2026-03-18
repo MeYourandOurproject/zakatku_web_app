@@ -8,12 +8,19 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      // define association here
+      Setting.belongsTo(models.Zakatinstitution, {
+        foreignKey: "institution_id",
+        as: "institution",
+      });
     }
   }
   Setting.init(
     {
-      key: { type: DataTypes.STRING, unique: true },
+      institution_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
+      key: { type: DataTypes.STRING },
       value: { type: DataTypes.STRING },
       description: { type: DataTypes.TEXT },
     },
@@ -22,6 +29,12 @@ module.exports = (sequelize, DataTypes) => {
       modelName: "Setting",
       tableName: "Settings",
       freezeTableName: true,
+      indexes: [
+        {
+          unique: true,
+          fields: ["institution_id", "key"],
+        },
+      ],
     },
   );
   return Setting;

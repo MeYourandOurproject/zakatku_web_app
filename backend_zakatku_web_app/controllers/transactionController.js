@@ -64,9 +64,12 @@ class TransactionController {
         notes,
       } = req.body;
 
-      // ambil harga fidyah dari settings
+      // ambil harga fidyah dari settings per institution
       const fidyahSetting = await Setting.findOne({
-        where: { key: "fidyah_price" },
+        where: { 
+          key: "fidyah_price",
+          institution_id: req.user.institution_id,
+        },
       });
 
       const fidyahPrice = fidyahSetting ? Number(fidyahSetting.value) : 0;

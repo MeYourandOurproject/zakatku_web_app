@@ -1,10 +1,15 @@
 const { Setting } = require("../models");
 
 class SettingController {
-  // GET ALL SETTINGS
+  // GET ALL SETTINGS FOR INSTITUTION
   static async getAll(req, res) {
     try {
+      const institutionId = req.user.institution_id;
+
       const settings = await Setting.findAll({
+        where: {
+          institution_id: institutionId,
+        },
         order: [["id", "ASC"]],
       });
 
@@ -24,8 +29,14 @@ class SettingController {
   static async getById(req, res) {
     try {
       const { id } = req.params;
+      const institutionId = req.user.institution_id;
 
-      const setting = await Setting.findByPk(id);
+      const setting = await Setting.findOne({
+        where: { 
+          id,
+          institution_id: institutionId,
+        },
+      });
 
       if (!setting) {
         return res.status(404).json({
@@ -46,13 +57,17 @@ class SettingController {
     }
   }
 
-  // GET SETTING BY KEY
+  // GET SETTING BY KEY FOR INSTITUTION
   static async getByKey(req, res) {
     try {
       const { key } = req.params;
+      const institutionId = req.user.institution_id;
 
       const setting = await Setting.findOne({
-        where: { key },
+        where: { 
+          key,
+          institution_id: institutionId,
+        },
       });
 
       if (!setting) {
@@ -74,21 +89,28 @@ class SettingController {
     }
   }
 
-  // CREATE SETTING
+  // CREATE SETTING FOR INSTITUTION
   static async create(req, res) {
     try {
       const { key, value, description } = req.body;
+      const institutionId = req.user.institution_id;
 
-      const exist = await Setting.findOne({ where: { key } });
+      const exist = await Setting.findOne({ 
+        where: { 
+          key,
+          institution_id: institutionId,
+        },
+      });
 
       if (exist) {
         return res.status(400).json({
           success: false,
-          message: "Key already exists",
+          message: "Setting key already exists for this institution",
         });
       }
 
       const setting = await Setting.create({
+        institution_id: institutionId,
         key,
         value,
         description,
@@ -112,8 +134,14 @@ class SettingController {
     try {
       const { id } = req.params;
       const { key, value, description } = req.body;
+      const institutionId = req.user.institution_id;
 
-      const setting = await Setting.findByPk(id);
+      const setting = await Setting.findOne({
+        where: {
+          id,
+          institution_id: institutionId,
+        },
+      });
 
       if (!setting) {
         return res.status(404).json({
@@ -145,8 +173,14 @@ class SettingController {
   static async delete(req, res) {
     try {
       const { id } = req.params;
+      const institutionId = req.user.institution_id;
 
-      const setting = await Setting.findByPk(id);
+      const setting = await Setting.findOne({
+        where: {
+          id,
+          institution_id: institutionId,
+        },
+      });
 
       if (!setting) {
         return res.status(404).json({

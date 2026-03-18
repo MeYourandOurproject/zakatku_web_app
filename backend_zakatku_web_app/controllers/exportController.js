@@ -8,7 +8,10 @@ const Setting = db.Setting;
 
 exports.exportZakatExcel = async (req, res) => {
   try {
-    const settings = await Setting.findAll();
+    // Get settings for the institution only
+    const settings = await Setting.findAll({
+      where: { institution_id: req.user.institution_id },
+    });
 
     const settingMap = {};
     settings.forEach((s) => {
